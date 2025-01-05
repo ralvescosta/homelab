@@ -1,0 +1,21 @@
+---
+- hosts: nodes
+  become: yes
+  tasks:
+    - name: Ensure Snap is installed
+      apt:
+        name: snapd
+        state: present
+
+    - name: Ensure MicroK8s is installed
+      snap:
+        name: microk8s
+        state: present
+
+    - name: Add worker nodes to the cluster
+      shell: |
+        microk8s add-node
+        echo "{{ item }}"
+      with_items:
+        - node-2
+        - node-3

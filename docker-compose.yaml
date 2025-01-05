@@ -1,0 +1,89 @@
+services:
+  control-plane:
+    build:
+      context: ./ansible
+      dockerfile: Dockerfile
+    container_name: control-plane
+    restart: unless-stopped
+    networks:
+      - hl-network
+    privileged: true
+    command: tail -f /dev/null
+    ports:
+      - "6443:6443"               # Kubernetes API server
+      - "80:80"                   # HTTP for Ingress
+      - "443:443"                 # HTTPS for Ingress
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4g
+        reservations:
+          cpus: '0.5'
+          memory: 2g
+
+  node-1:
+    build:
+      context: ./ansible
+      dockerfile: Dockerfile
+    container_name: node-1
+    restart: unless-stopped
+    networks:
+      - hl-network
+    privileged: true
+    command: tail -f /dev/null
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 4g
+        reservations:
+          cpus: '0.5'
+          memory: 2g
+
+  node-2:
+    build:
+      context: ./ansible
+      dockerfile: Dockerfile
+    container_name: node-2
+    restart: unless-stopped
+    networks:
+      - hl-network
+    privileged: true
+    command: tail -f /dev/null
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 4g
+        reservations:
+          cpus: '0.5'
+          memory: 2g
+
+  ansible:
+    build:
+      context: ./ansible
+      dockerfile: Dockerfile
+    container_name: ansible
+    restart: unless-stopped
+    networks:
+      - hl-network
+    privileged: true
+    # command: ansible-playbook -i /playbooks/inventory.ini /playbooks/microk8s.yml
+    command: tail -f /dev/null
+    depends_on:
+      - control-plane
+      - node-1
+      - node-2
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2g
+        reservations:
+          cpus: '0.5'
+          memory: 1g
+
+networks:
+  hl-network:
+    driver: bridge
